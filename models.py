@@ -3,6 +3,17 @@ from sqlalchemy.orm import relationship
 from database import Base
 from enum import Enum as PyEnum
 
+class University(Base):
+    __tablename__ = "university"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), unique=True, nullable=False)
+    address = Column(String(255))
+    phone = Column(String(20))
+    email = Column(String(100))
+
+
+    schedules = relationship("Schedule", back_populates="university")
+
 
 class UserRole(str, PyEnum):
     ADMIN = "admin"
@@ -18,7 +29,7 @@ class User(Base):
     email = Column(String(100), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
-    role = Column(Enum(UserRole), default="student") # Роль: admin/teacher/student
+    role = Column(Enum(UserRole), default="student")
 
 
 class Teacher(Base):
@@ -27,6 +38,7 @@ class Teacher(Base):
     user_id = Column(Integer, ForeignKey("user.id"), unique=True)  # Связь с User
     name = Column(String(100), nullable=False)
     qualifications = Column(String(200))
+    university_id = Column(Integer, ForeignKey("university.id"))
 
     user = relationship("User")
     schedules = relationship("Schedule", back_populates="teacher")
@@ -46,7 +58,7 @@ class Classroom(Base):
     number = Column(String(10), unique=True, nullable=False)
     capacity = Column(Integer)
     has_projector = Column(Boolean, default=False)
-
+    university_id = Column(Integer, ForeignKey("university.id"))
 
 class Group(Base):
     __tablename__ = "group"
@@ -54,13 +66,12 @@ class Group(Base):
     name = Column(String(20), unique=True, nullable=False)
     student_count = Column(Integer)
     faculty = Column(String(50))
-
+    university_id = Column(Integer, ForeignKey("university.id"))
 
 class LessonType(Base):
     __tablename__ = "lesson_type"
     id = Column(Integer, primary_key=True)
-    name = Column(String(20), nullable=False)  # "lecture", "seminar", "lab"
-
+    name = Column(String(20), nullable=False)
 
 class Schedule(Base):
     __tablename__ = "schedule"
@@ -72,10 +83,13 @@ class Schedule(Base):
     type_id = Column(Integer, ForeignKey("lesson_type.id"))
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
-    day_of_week = Column(String(10), nullable=False)  # "Monday", "Tuesday"...
+    day_of_week = Column(String(10), nullable=False)
 
     teacher = relationship("Teacher", back_populates="schedules")
     subject = relationship("Subject")
     classroom = relationship("Classroom")
     group = relationship("Group")
     lesson_type = relationship("LessonType")
+
+    university_id = Column(Integer, ForeignKey("university.id"))
+    university = relationship("University", back_populates="schedules")

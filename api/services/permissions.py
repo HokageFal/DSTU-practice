@@ -28,13 +28,13 @@ async def is_autorization(request: Request):
 
 
 async def is_admin(request: Request):
-    user_data = is_autorization(request)  # Получаем данные из токена
+    user_data = await is_autorization(request)  # Получаем данные из токена
 
     if "role" not in user_data:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Недостаточно прав")
 
-    if not user_data["is_admin"]:
+    if user_data["role"] != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
                             detail="Только администраторы могут выполнять это действие")
 
